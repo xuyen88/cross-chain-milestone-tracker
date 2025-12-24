@@ -1,23 +1,50 @@
-// Bộ theo dõi Milestone trên mạng Cardano
+// Bộ theo dõi Milestone trên mạng Cardano (Bản nâng cấp bảo mật)
 const axios = require('axios');
 
 async function trackCardanoMilestones(scriptAddress) {
-  console.log(`🔍 Đang quét các UTXO tại địa chỉ Script: ${scriptAddress}`);
-  
-  // Giả sử sử dụng Blockfrost API để lấy dữ liệu eUTXO
-  // Trên Cardano, mỗi UTXO đại diện cho một đợt giải ngân (Milestone)
-  const response = await axios.get(`https://cardano-mainnet.blockfrost.io/api/v0/addresses/${scriptAddress}/utxos`);
-  
-  const milestones = response.data.map(utxo => {
-    return {
-      txHash: utxo.tx_hash,
-      amount: utxo.amount[0].quantity / 1000000, // Đổi từ Lovelace sang ADA
-      status: "Locked (Waiting for Assessor)"
-    };
-  });
+    // 1. Kiểm tra đầu vào cơ bản
+    if (!scriptAddress || scriptAddress === "addr_test1...") {
+        console.error("❌ Lỗi: Vui lòng cung cấp địa chỉ Script hợp lệ.");
+        return;
+    }
 
-  console.table(milestones);
+    console.log(`🔍 Đang bắt đầu quét UTXO tại: ${scriptAddress}...`);
+
+    try {
+        // 2. Thực hiện truy vấn với cơ chế bắt lỗi
+        // Lưu ý: PROJECT_ID nên được bảo mật trong file .env (Sẽ làm ở Bước 2)
+        const response = await axios.get(
+            `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${scriptAddress}/utxos`,
+            { headers: { 'project_id': 'YOUR_API_KEY_HERE' } }
+        );
+
+        if (response.data.length === 0) {
+            console.log("⚠️ Thông báo: Không tìm thấy UTXO nào (Chưa có tiền được khóa).");
+            return;
+        }
+
+        // 3. Chuẩn hóa dữ liệu (Data Normalization)
+        // Chuyển đổi dữ liệu thô từ Cardano về định dạng báo cáo tiêu chuẩn
+        const milestones = response.data.map(utxo => ({
+            txHash: utxo.tx_hash,
+            amountAda: utxo.amount[0].quantity / 1000000,
+            status: "Locked/Waiting",
+            network: "Cardano"
+        }));
+
+        console.log("✅ Dữ liệu Milestone tìm thấy:");
+        console.table(milestones);
+
+    } catch (error) {
+        // 4. Xử lý các loại lỗi khác nhau
+        if (error.response) {
+            console.error(`❌ Lỗi API (${error.response.status}): ${error.response.data.message}`);
+        } else {
+            console.error("❌ Lỗi: Không thể kết nối tới Blockchain Gateway.");
+        }
+    }
 }
 
-// Địa chỉ ví dụ của một Escrow Smart Contract trên Cardano
-trackCardanoMilestones("addr_test1...");
+// Thực thi với địa chỉ từ biến môi trường hoặc địa chỉ mặc định
+const TARGET_ADDRESS = process.env.CARDANO_SCRIPT_ADDRESS || "addr_test1...";
+trackCardanoMilestones(TARGET_ADDRESS);
