@@ -34,3 +34,11 @@ Dự án này tập trung đánh giá 3 lỗ hổng thường gặp:
 
 # cross-chain-milestone-tracker
 Monitoring tool and technical assessment framework for multi-chain dApp deployments.
+
+**Reliability & Best Practices:**
+
+Error Handling: Hệ thống không bị sập nhờ cơ chế try...catch khi gọi API.
+
+Data Normalization: Chuyển đổi dữ liệu thô từ nhiều chuỗi khác nhau về một định dạng báo cáo thống nhất.
+
+Security Configuration: Sử dụng .env.example để hướng dẫn cấu hình API Key an toàn.
