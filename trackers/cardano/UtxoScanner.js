@@ -1,6 +1,6 @@
 // Bộ theo dõi Milestone trên mạng Cardano (Bản nâng cấp bảo mật)
 const axios = require('axios');
-
+require('dotenv').config();
 async function trackCardanoMilestones(scriptAddress) {
     // 1. Kiểm tra đầu vào cơ bản
     if (!scriptAddress || scriptAddress === "addr_test1...") {
@@ -15,7 +15,7 @@ async function trackCardanoMilestones(scriptAddress) {
         // Lưu ý: PROJECT_ID nên được bảo mật trong file .env (Sẽ làm ở Bước 2)
         const response = await axios.get(
             `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${scriptAddress}/utxos`,
-            { headers: { 'project_id': 'YOUR_API_KEY_HERE' } }
+            { headers: { 'project_id': process.env.BLOCKFROST_PROJECT_ID } }
         );
 
         if (response.data.length === 0) {
